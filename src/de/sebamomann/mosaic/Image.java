@@ -84,6 +84,8 @@ public class Image
 	 */
 	public void create()
 	{
+		preCheck();
+
 		long start = System.currentTimeMillis();
 
 		prepare();
@@ -101,6 +103,27 @@ public class Image
 		{
 			System.out.println("Total Duration: " + millis / 60000 + " Minutes");
 		}
+	}
+
+	private void preCheck()
+	{
+		if (subImgSize < 1 || goalImgSizeX < 1 || goalImgSizeY < 1)
+		{
+			System.out.println("Exit ...");
+			System.out.println("Given parameters cant be processed!");
+			System.out.println("Make sure, that the image dimensaions are bigger than 1");
+			System.exit(0);
+		}
+
+		if (goalImgSizeX * subImgSize >= 46340 || goalImgSizeY * subImgSize >= 46340)
+		{
+			System.out.println("Exit ...");
+			System.out.println("Given parameters cant be processed!");
+			System.out.println(
+					"Make sure, that the goalImgSizeX * subImgSize and goalImgSizeY * subImgSize are not bigger than 46340!");
+			System.exit(0);
+		}
+
 	}
 
 	private void prepare()
