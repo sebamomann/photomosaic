@@ -71,12 +71,26 @@ public class Image
 	private int replacedImages = 0;
 	private int minimumRequiredImages = max(goalImgSizeX, goalImgSizeY);
 
+	private BufferedImage src = null;
+
 	/**
 	 * 
 	 */
 	public Image()
 	{
-
+		try
+		{
+			src = ImageIO.read(new File("goal.png"));
+			/*
+			 * Load goal image and resize it to size specified in configuration file
+			 */
+			src = Helper.resize(src, goalImgSizeX, goalImgSizeY);
+		} catch (IOException e)
+		{
+			System.out.println("Exit .....");
+			System.out.println("Goal image could not be loaded. Please make sure, the goal image is named goal.png");
+			System.exit(0);
+		}
 	}
 
 	/**
@@ -287,20 +301,6 @@ public class Image
 		long startBuild = System.currentTimeMillis();
 
 		int threadCount = 0;
-
-		/*
-		 * Load goal image and resize it to size specified in configuration file
-		 */
-		BufferedImage src = null;
-		try
-		{
-			src = ImageIO.read(new File("goal.png"));
-		} catch (IOException e)
-		{
-			System.out.println("Exit .....");
-			System.out.println("Goal image could not be loaded. Please make sure, the goal image is named goal.png");
-		}
-		src = Helper.resize(src, goalImgSizeX, goalImgSizeY);
 
 		int w = src.getWidth();
 		int h = src.getHeight();
