@@ -476,17 +476,19 @@ public class Image
 		System.out.println("---------------------------------------------");
 		System.out.println();
 
+		System.out.println("Rendering image as png ...");
+
 		String name = "result-" + subImgSize + "px-" + goalImgSizeX + "px-" + goalImgSizeY + "px_"
 				+ System.currentTimeMillis() + ".png";
 		File file = new File(name);
 		try
 		{
 			ImageIO.write(resultImage, "png", file);
-			System.out.println("Building success!");
+			System.out.println("Rendering success!");
 			System.out.println("Imaged saved as " + name);
 		} catch (IOException e)
 		{
-			System.out.println("Buildung failure!");
+			System.out.println("Rendering failure!");
 			System.out.println("Image could not be saved!");
 			System.exit(0);
 		}
