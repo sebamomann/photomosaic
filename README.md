@@ -2,7 +2,7 @@
 ## Usage
 ### Preparation
 Create a ``img``  folder within the project root path. Paste all source images you want to have in the mosiac in here.
-Adapt the configuration in ``de.sebamomann.config/config.cfg``
+Adapt the configuration in ``de.sebamomann.config/config.cfg`` or when executing a jar file adapt it in the same folder as the jar file is located
 
 ### Variable explanation configuration.cfg
 ```
