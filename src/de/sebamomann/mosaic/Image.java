@@ -17,12 +17,15 @@ import java.util.concurrent.TimeUnit;
 import javax.imageio.ImageIO;
 
 import de.sebamomann.config.Config;
+import de.sebamomann.gui.Console;
 import de.sebamomann.runnable.IndexedThread;
 import de.sebamomann.runnable.PartialImage;
+import lombok.Data;
 
 /**
  *
  */
+@Data
 public class Image
 {
 	private static Config cfg = new Config();
@@ -40,24 +43,42 @@ public class Image
 	/**
 	 * Width and height of image that replaces a pixel in the final image
 	 */
-	public final int subImgSize = Integer.valueOf(cfg.getProperty("subImgSize"));
+	public int subImgSize;
+
 	/**
 	 * Final image width
 	 */
-	public final int goalImgSizeX = Integer.valueOf(cfg.getProperty("goalImgSizeX"));
+	public int goalImgSizeX;
+
 	/**
 	 * Final image height
 	 */
-	public final int goalImgSizeY = Integer.valueOf(cfg.getProperty("goalImgSizeY"));
+	private int goalImgSizeY;
 
 	/**
 	 * Starting possible color deviation of average color
 	 */
 	public static int beginningDeviation = Integer.valueOf(cfg.getProperty("beginningDeviation"));
+
 	/**
 	 * Deviation increase after no image in previous deviation range is found
 	 */
 	public static final int deviationIncrease = Integer.valueOf(cfg.getProperty("deviationIncrease"));
+
+	/*
+	 * Goal Image source
+	 */
+	private File goalImage;
+
+	/*
+	 * location of source Images
+	 */
+	private File sourceImages;
+
+	/*
+	 * location of result image
+	 */
+	private File destination;
 
 	// CONSOLE UPDATE THREAD
 	// UPDATE EVERY x TimeUnits
@@ -71,26 +92,27 @@ public class Image
 	private int replacedImages = 0;
 	private int minimumRequiredImages = max(goalImgSizeX, goalImgSizeY);
 
-	private BufferedImage src = null;
+	private BufferedImage src;
+
+	private Console console;
 
 	/**
 	 * 
 	 */
 	public Image()
 	{
-		try
-		{
-			src = ImageIO.read(new File("goal.png"));
-			/*
-			 * Load goal image and resize it to size specified in configuration file
-			 */
-			src = Helper.resize(src, goalImgSizeX, goalImgSizeY);
-		} catch (IOException e)
-		{
-			System.out.println("Exit .....");
-			System.out.println("Goal image could not be loaded. Please make sure, the goal image is named goal.png");
-			System.exit(0);
-		}
+
+	}
+
+	/**
+	 * Initialize console for logs
+	 */
+	public void initConsole()
+	{
+		/*
+		 * Window for console outputs
+		 */
+		new Console();
 	}
 
 	/**
@@ -98,7 +120,10 @@ public class Image
 	 */
 	public void create()
 	{
-		preCheck();
+		/*
+		 * Load goal image and resize it to size specified in configuration file
+		 */
+		src = Helper.resize(src, goalImgSizeX, goalImgSizeY);
 
 		long start = System.currentTimeMillis();
 
@@ -119,36 +144,15 @@ public class Image
 		}
 	}
 
-	private void preCheck()
-	{
-		if (subImgSize < 1 || goalImgSizeX < 1 || goalImgSizeY < 1)
-		{
-			System.out.println("Exit ...");
-			System.out.println("Given parameters cant be processed!");
-			System.out.println("Make sure, that the image dimensaions are bigger than 1");
-			System.exit(0);
-		}
-
-		if (goalImgSizeX * subImgSize >= 46340 || goalImgSizeY * subImgSize >= 46340)
-		{
-			System.out.println("Exit ...");
-			System.out.println("Given parameters cant be processed!");
-			System.out.println(
-					"Make sure, that the goalImgSizeX * subImgSize and goalImgSizeY * subImgSize are not bigger than 46340!");
-			System.exit(0);
-		}
-
-	}
-
 	private void prepare()
 	{
 		System.out.println("Preparing images ...");
 
 		long startPrepare = System.currentTimeMillis();
 
-		Helper.deleteDir(new File("img/cropped"));
+		Helper.deleteDir(new File(sourceImages.getAbsolutePath() + "/cropped"));
 
-		File dir = new File("img");
+		File dir = sourceImages;
 		File[] images = dir.listFiles();
 
 		/*
@@ -192,8 +196,9 @@ public class Image
 
 									Color color = Helper.calculateAverageColor(src, 0, 0, subImgSize, subImgSize);
 
-									File file = new File("img/cropped/" + color.getRed() + "_" + color.getGreen() + "_"
-											+ color.getBlue() + "_" + System.currentTimeMillis() + ".png");
+									File file = new File(sourceImages.getAbsolutePath() + "/cropped/" + color.getRed()
+											+ "_" + color.getGreen() + "_" + color.getBlue() + "_"
+											+ System.currentTimeMillis() + ".png");
 
 									file.mkdirs();
 									ImageIO.write(src, "png", file);
@@ -323,7 +328,7 @@ public class Image
 
 		int totalImagesToInsert = goalImgSizeX * goalImgSizeY;
 
-		File dir = new File("img/cropped");
+		File dir = new File(sourceImages.getAbsolutePath() + "/cropped");
 		File[] images = dir.listFiles();
 
 		if (images != null && images.length > minimumRequiredImages)
@@ -431,8 +436,8 @@ public class Image
 
 					if (replacedImages < totalImagesToInsert)
 					{
-						System.out.println(
-								"Building " + percent + "% approx. " + eta + " " + intervall.toString() + " left");
+						System.out.println("Building " + percent + "% approx. " + Math.round(eta) + " "
+								+ intervall.toString() + " left");
 						someScheduler.schedule(this, intervallIndex, intervall);
 						intervallsPassed++;
 					} else
@@ -478,14 +483,17 @@ public class Image
 
 		System.out.println("Rendering image as png ...");
 
-		String name = "result-" + subImgSize + "px-" + goalImgSizeX + "px-" + goalImgSizeY + "px_"
+		String name = goalImage.getName() + "_" + subImgSize + "-" + goalImgSizeX + "-" + goalImgSizeY + "_"
 				+ System.currentTimeMillis() + ".png";
-		File file = new File(name);
+		File file = new File(destination.getAbsolutePath() + "/" + name);
 		try
 		{
 			ImageIO.write(resultImage, "png", file);
 			System.out.println("Rendering success!");
-			System.out.println("Imaged saved as " + name);
+			System.out.println();
+			System.out.println("Imaged saved as");
+			System.out.println(name);
+			System.out.println();
 		} catch (IOException e)
 		{
 			System.out.println("Rendering failure!");

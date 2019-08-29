@@ -2,6 +2,8 @@ package de.sebamomann.mosaic;
 
 import java.io.IOException;
 
+import de.sebamomann.gui.ConfigurationDialogue;
+
 /**
  * 
  */
@@ -13,7 +15,6 @@ public class Mosaic
 	 */
 	public static void main(String args[]) throws IOException
 	{
-		Image image = new Image();
-		image.create();
+		new ConfigurationDialogue("Mosaic");
 	}
 }

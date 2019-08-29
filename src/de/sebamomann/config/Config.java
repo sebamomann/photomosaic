@@ -24,6 +24,7 @@ public class Config
 			file.load(this.getClass().getClassLoader().getResourceAsStream("config.cfg"));
 		} catch (Exception e)
 		{
+			e.printStackTrace();
 			System.out.println("Could not load Configuration File!");
 		}
 	}
